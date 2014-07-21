@@ -1,7 +1,7 @@
 ige-xpilot
 ==========
 
-HTML5 Canvas NodeJS based Xpilot clone
+ige-XPilot is an XPilot clone which uses an HTML5 Canvas on the client to be run cross platform in any browser and a server built using NodeJS. The game is built using the Isogenic Game Engine.
 
 ## Developement
 
