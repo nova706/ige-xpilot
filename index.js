@@ -15,7 +15,7 @@ var Game = IgeClass.extend({
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Game;
 } else {
     var game = new Game(Client);

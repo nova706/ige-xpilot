@@ -48,6 +48,6 @@ var LandingPad = IgeEntityBox2d.extend({
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = LandingPad;
 }

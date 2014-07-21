@@ -15,7 +15,7 @@ var ClientScore = IgeFontEntity.extend({
             this.colorOverlay('green');
         } else {
             text = "- " + score;
-            this.colorOverlay('#ff6f6f')
+            this.colorOverlay('#ff6f6f');
         }
 
         this.depth(4)

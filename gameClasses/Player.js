@@ -53,7 +53,8 @@ var Player = Box2DStreamEntity.extend({
             // based on the triangles
             fixDefs = [];
 
-            for (var i = 0; i < this.triangles.length; i++) {
+            var i;
+            for (i = 0; i < this.triangles.length; i++) {
                 fixDefs.push({
                     density: 1.0,
                     friction: 1.0,
@@ -644,14 +645,14 @@ var Player = Box2DStreamEntity.extend({
      * Sets the data to be streamed to the client on creation of the streamed entity
      * @returns {{id: String, hasShield: Boolean}}
      */
-    streamCreateData: function() {
+    streamCreateData: function () {
         return {
             id: this.id(),
             hasShield: this.$hasShield
-        }
+        };
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Player;
 }

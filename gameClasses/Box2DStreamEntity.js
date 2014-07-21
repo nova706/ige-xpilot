@@ -17,7 +17,7 @@ var Box2DStreamEntity = IgeEntityBox2d.extend({
      * Sets the data to be streamed to the client on creation of the streamed entity
      * @returns {Object}
      */
-    streamCreateData: function() {
+    streamCreateData: function () {
         return {};
     },
 
@@ -32,7 +32,7 @@ var Box2DStreamEntity = IgeEntityBox2d.extend({
      * use "keepOld".
      */
     $addStreamData: function (id, data, keepOld) {
-        if (keepOld === true && typeof(this._$streamActions[id]) == 'object') {
+        if (keepOld === true && typeof this._$streamActions[id] === 'object') {
             this._$streamActions[id].push(data);
         } else {
             this._$streamActions[id] = [data];
@@ -64,13 +64,12 @@ var Box2DStreamEntity = IgeEntityBox2d.extend({
      * @returns {*}
      */
     streamSectionData: function (sectionId, data, bypassTimeStream) {
-        if (this._$streamActionSections.indexOf(sectionId) != -1) {
+        if (this._$streamActionSections.indexOf(sectionId) !== -1) {
             if (!data) {
                 if (ige.isServer) {
                     return this._$getJSONStreamActionData(sectionId);
-                } else {
-                    return;
                 }
+                return;
             }
             var dataArr = JSON.parse(data);
             var dataId;
@@ -90,7 +89,7 @@ var Box2DStreamEntity = IgeEntityBox2d.extend({
      * @return {String} JSON string or undefined
      */
     _$getJSONStreamActionData: function (property) {
-        if (this._$streamActions.hasOwnProperty(property) && this._$streamActions[property] != undefined) {
+        if (this._$streamActions.hasOwnProperty(property) && typeof this._$streamActions[property] !== 'undefined') {
             var data = this._$streamActions[property];
             delete this._$streamActions[property];
             return JSON.stringify(data);
@@ -98,6 +97,6 @@ var Box2DStreamEntity = IgeEntityBox2d.extend({
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Box2DStreamEntity;
 }

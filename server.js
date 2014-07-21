@@ -324,12 +324,12 @@ var Server = IgeClass.extend({
         }
         if (openPads.length > 0) {
             return openPads[Math.floor(Math.random() * openPads.length)];
-        } else {
-            return null;
         }
+
+        return null;
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof (module) !== 'undefined' && typeof( module.exports) !== 'undefined') {
     module.exports = Server;
 }

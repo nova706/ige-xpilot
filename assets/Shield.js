@@ -1,5 +1,3 @@
-
-
 var image = {
     render: function (ctx, entity) {
         var pointArray = entity.pointArray;
@@ -7,7 +5,8 @@ var image = {
         ctx.strokeStyle = "#ffffff";
         ctx.beginPath();
 
-        for(p = 0; p < pointArray.length; p++){
+        var p;
+        for (p = 0; p < pointArray.length; p++) {
             ctx.moveTo(pointArray[p].x, pointArray[p].y);
             ctx.lineTo(pointArray[p].ex, pointArray[p].ey);
             ctx.stroke();

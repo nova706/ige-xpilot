@@ -78,10 +78,10 @@ TouchControllerComponent = IgeEventingClass.extend({
                 if (this._options.events) {
                     this.emit('controllerOn', [side, this[side].vector]);
                 }
-                continue;
             }
         }
-        return touches = e.touches;
+        touches = e.touches;
+        return touches;
     },
     _mouseMove: function (e) {
         var side, touch, _i, _len, _ref;
@@ -110,7 +110,8 @@ TouchControllerComponent = IgeEventingClass.extend({
                 }
             }
         }
-        return this._touches = e.touches;
+        this._touches = e.touches;
+        return this._touches;
     },
     _mouseUp: function (e) {
         var side, touch, _i, _len, _ref, _results;

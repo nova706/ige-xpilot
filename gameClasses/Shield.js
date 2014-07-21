@@ -9,7 +9,7 @@ var Shield = IgeEntity.extend({
         IgeEntity.prototype.init.call(this);
 
         this.width(20).height(20);
-        function calcPointsCirc (cx, cy, rad, dashLength) {
+        function calcPointsCirc(cx, cy, rad, dashLength) {
             var n = rad / dashLength,
                 alpha = Math.PI * 2 / n,
                 points = [],

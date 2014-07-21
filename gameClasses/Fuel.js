@@ -62,7 +62,7 @@ var Fuel = Box2DStreamEntity.extend({
      * @param {Number} amount
      * @private
      */
-    _$updateFuel: function(amount) {
+    _$updateFuel: function (amount) {
         if (ige.isServer) {
             if (amount > 100) {
                 amount = 100;
@@ -126,14 +126,14 @@ var Fuel = Box2DStreamEntity.extend({
         }
     },
 
-    streamCreateData: function() {
+    streamCreateData: function () {
         return {
             x: this.fuelBarX,
             y: this.fuelBarY
-        }
+        };
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Fuel;
 }

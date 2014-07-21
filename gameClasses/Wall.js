@@ -74,7 +74,8 @@ var Wall = IgeEntityBox2d.extend({
                 // Now convert this polygon into an array of triangles
                 triangles = collisionPoly.triangulate();
                 this.triangles = triangles;
-                for (var i = 0; i < this.triangles.length; i++) {
+                var i;
+                for (i = 0; i < this.triangles.length; i++) {
                     fixDefs.push({
                         filter: {
                             categoryBits: 0x0006,
@@ -109,6 +110,6 @@ var Wall = IgeEntityBox2d.extend({
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Wall;
 }

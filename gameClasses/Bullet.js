@@ -60,6 +60,6 @@ var Bullet = Box2DStreamEntity.extend({
     }
 });
 
-if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = Bullet;
 }
