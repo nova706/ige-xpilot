@@ -202,7 +202,7 @@ var Server = IgeClass.extend({
                                             contact.SetEnabled(false);
                                         } else {
                                             var shooter = contact.igeEntityByCategory('bullet')._shooter;
-                                            if (shooter) {
+                                            if (shooter !== player) {
                                                 shooter.$adjustScore(100);
                                             }
                                             player.$crash();
