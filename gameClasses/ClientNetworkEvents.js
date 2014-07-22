@@ -47,19 +47,31 @@ var ClientNetworkEvents = {
     },
 
     _onPlayerThrustStart: function (clientId) {
-        ige.$(clientId)._onTogglePlayerThrust(true);
+        var player = ige.$(clientId);
+        if (player) {
+            player._onTogglePlayerThrust(true);
+        }
     },
 
     _onPlayerThrustStop: function (clientId) {
-        ige.$(clientId)._onTogglePlayerThrust(false);
+        var player = ige.$(clientId);
+        if (player) {
+            player._onTogglePlayerThrust(false);
+        }
     },
 
     _onPlayerCrash: function (clientId) {
-        ige.$(clientId)._onPlayerCrash();
+        var player = ige.$(clientId);
+        if (player) {
+            player._onPlayerCrash();
+        }
     },
 
     _onPlayerRespawn: function (clientId) {
-        ige.$(clientId)._onPlayerRespawn();
+        var player = ige.$(clientId);
+        if (player) {
+            player._onPlayerRespawn();
+        }
     },
 
     _onPlayerToggleShield: function (data) {
@@ -70,7 +82,24 @@ var ClientNetworkEvents = {
     },
 
     _onPlayerUpdateScore: function (data) {
-        ige.$(data.clientId)._onPlayerUpdateScore(data.score);
+        var player = ige.$(data.clientId);
+        if (player) {
+            player._onPlayerUpdateScore(data.score);
+        }
+    },
+
+    _onTurretKilled: function (turretId) {
+        var turret = ige.$(turretId);
+        if (turret) {
+            turret._onTurretKilled();
+        }
+    },
+
+    _onTurretRespawn: function (turretId) {
+        var turret = ige.$(turretId);
+        if (turret) {
+            turret._onTurretRespawn();
+        }
     }
 };
 

@@ -12,7 +12,7 @@ var LandingPad = IgeEntityBox2d.extend({
 
         this.category('landingPad')
             .width(40)
-            .height(5);
+            .height(3);
 
         if (ige.isServer) {
             this.box2dBody({
@@ -30,6 +30,11 @@ var LandingPad = IgeEntityBox2d.extend({
                     }
                 ]
             });
+            this.streamMode(1);
+        } else {
+            this._rectColor = '#ffffff';
+            this.texture(ige.client.textures.rectangle);
+            this.depth(2);
         }
     },
 

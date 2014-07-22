@@ -14,7 +14,9 @@ var Client = IgeClass.extend({
         self.score = 0;
 
         // Load textures
+        self.textures.space = new IgeTexture('./assets/space.png');
         self.textures.ship = new IgeTexture('./assets/Ship.js');
+        self.textures.turret = new IgeTexture('./assets/Turret.js');
         self.textures.shield = new IgeTexture('./assets/Shield.js');
         self.textures.rectangle = new IgeTexture('./assets/Rectangle.js');
         self.textures.line = new IgeTexture('./assets/Line.js');
@@ -67,6 +69,8 @@ var Client = IgeClass.extend({
                         ige.network.define('playerRespawn', self._onPlayerRespawn);
                         ige.network.define('playerToggleShield', self._onPlayerToggleShield);
                         ige.network.define('playerUpdateScore', self._onPlayerUpdateScore);
+                        ige.network.define('turretRespawn', self._onTurretRespawn);
+                        ige.network.define('turretKilled', self._onTurretKilled);
 
                         // Setup the network stream handler
                         ige.network.addComponent(IgeStreamComponent)
@@ -88,6 +92,8 @@ var Client = IgeClass.extend({
 
                         self.backScene = new IgeScene2d()
                             .id('backScene')
+                            .translateTo(27, 17, 0)
+                            .backgroundPattern(ige.client.textures.space, 'repeat', false, false)
                             .mount(self.mainScene);
 
                         // Create UI elements
@@ -142,29 +148,7 @@ var Client = IgeClass.extend({
                             .drawBoundsData(true)
                             .mount(ige);
 
-                        // TODO: Move map creation to another class file
-                        // TODO: Change Gravity based on map
-                        ige.box2d._world.m_gravity = {
-                            x: 0,
-                            y: 0
-                        };
-
-                        // Load the Tiled map data and handle the return data
-                        // TODO: Move the space layer as a background to the object scene rather than part of the map.
-                        ige.addComponent(IgeTiledComponent)
-                            .tiled.loadJson(Map1, function (layerArray, layersById) {
-                                var i;
-
-                                for (i = 0; i < layerArray.length; i++) {
-                                    layerArray[i]
-                                        .tileWidth(40)
-                                        .tileHeight(40)
-                                        .autoSection(20)
-                                        .drawBounds(false)
-                                        .drawBoundsData(false)
-                                        .mount(self.backScene);
-                                }
-                            });
+                        MapGenerator.buildMap.call(self, Map1);
 
                         // Define our player controls
                         ige.input.mapAction('left', ige.input.key.left);

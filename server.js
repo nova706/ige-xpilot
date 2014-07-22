@@ -9,11 +9,11 @@ var Server = IgeClass.extend({
 
         // Define an object to hold references to our player entities
         this.players = {};
-        this.landingPads = [];
         this.messagesSending = {};
 
         // Add the server-side game methods / event handlers
         this.implement(ServerNetworkEvents);
+        this.implement(MapGenerator);
 
         ige.addComponent(IgeBox2dComponent)
             .box2d.sleep(true)
@@ -47,6 +47,8 @@ var Server = IgeClass.extend({
                         ige.network.define('playerRespawn');
                         ige.network.define('playerToggleShield');
                         ige.network.define('playerUpdateScore');
+                        ige.network.define('turretRespawn');
+                        ige.network.define('turretKilled');
 
                         // Add the network stream component
                         ige.network.addComponent(IgeStreamComponent)
@@ -73,222 +75,8 @@ var Server = IgeClass.extend({
                             .scene(self.mainScene)
                             .mount(ige);
 
-                        // TODO: Move map creation logic to a separate class file
-                        // TODO: Change Gravity based on map
-                        ige.box2d._world.m_gravity = {
-                            x: 0,
-                            y: 0
-                        };
-
-                        var i;
-                        var x;
-                        var y;
-                        var wallLayer;
-                        var wallType;
-                        var landingLayer;
-                        var landingPad;
-                        var fuelLayer;
-                        for (i = 0; i < Map1.layers.length; i++) {
-                            if (Map1.layers[i].name === 'landing') {
-                                landingLayer = Map1.layers[i];
-                            }
-                            if (Map1.layers[i].name === 'walls') {
-                                wallLayer = Map1.layers[i];
-                            }
-                            if (Map1.layers[i].name === 'fuel') {
-                                fuelLayer = Map1.layers[i];
-                            }
-                        }
-
-                        if (landingLayer) {
-                            for (i = 0; i < landingLayer.data.length; i++) {
-                                if (landingLayer.data[i] !== 0) {
-                                    y = Math.floor(i / 40);
-                                    x = i % 40;
-                                    x = x * 40;
-                                    y = y * 40;
-                                    y -= 20;
-                                    landingPad = new LandingPad()
-                                        .translateTo(x, y, 0)
-                                        .mount(self.objectScene);
-
-                                    self.landingPads.push(landingPad);
-                                }
-                            }
-                        }
-
-                        if (wallLayer) {
-                            for (i = 0; i < wallLayer.data.length; i++) {
-                                if (wallLayer.data[i] !== 0) {
-                                    y = Math.floor(i / 40);
-                                    x = i % 40;
-                                    x = x * 40;
-                                    y = y * 40;
-
-                                    switch (wallLayer.data[i]) {
-                                    case 6:
-                                        wallType = 'box';
-                                        break;
-                                    case 5:
-                                        wallType = 'tl';
-                                        break;
-                                    case 4:
-                                        wallType = 'tr';
-                                        break;
-                                    case 3:
-                                        wallType = 'br';
-                                        break;
-                                    case 2:
-                                        wallType = 'bl';
-                                        break;
-                                    }
-
-                                    new Wall(wallType)
-                                        .translateTo(x, y, 0)
-                                        .mount(self.objectScene);
-
-                                }
-                            }
-                        }
-
-                        if (fuelLayer) {
-                            for (i = 0; i < fuelLayer.data.length; i++) {
-                                if (fuelLayer.data[i] !== 0) {
-                                    y = Math.floor(i / 40);
-                                    x = i % 40;
-                                    x = x * 40;
-                                    y = y * 40;
-                                    new Fuel({ x: x, y: y})
-                                        .translateTo(x, y, 0)
-                                        .mount(self.objectScene);
-                                }
-                            }
-                        }
-
-                        // TODO: Move collision detection logic into another class file
-                        ige.box2d.contactListener(
-                            // Listen for when contact's begin
-                            function (contact) {
-
-                                if (contact.igeBothCategories('ship')) {
-                                    var player1 = contact.igeEntityByCategory('ship');
-                                    var player2 = contact.igeOtherEntity(player1);
-                                    if (!player1.$hasShield) {
-                                        player1.$crash();
-                                    }
-                                    if (!player2.$hasShield) {
-                                        player2.$crash();
-                                    }
-                                } else if (contact.igeEitherCategory('ship')) {
-                                    var player = contact.igeEntityByCategory('ship');
-                                    // If the player ship touches a landing pad, check velocity and angle
-                                    var degrees = Math.degrees(player._rotate.z),
-                                        wound = Math.round(degrees / 360);
-
-                                    if (wound > 0) {
-                                        degrees -= (360 * wound);
-                                    }
-
-                                    if (wound < 0) {
-                                        degrees -= (360 * wound);
-                                    }
-
-                                    var velocity = Math.abs(contact.m_fixtureA.m_body.m_linearVelocity.x) + Math.abs(contact.m_fixtureA.m_body.m_linearVelocity.y);
-                                    var maxWoundVelocity = 18;
-                                    var minWoundVelocity = 10;
-
-                                    if (contact.igeEitherCategory('bullet')) {
-                                        if (player._hasShield) {
-                                            contact.SetEnabled(false);
-                                        } else {
-                                            var shooter = contact.igeEntityByCategory('bullet')._shooter;
-                                            if (shooter !== player) {
-                                                shooter.$adjustScore(100);
-                                            }
-                                            player.$crash();
-                                        }
-                                    } else if (contact.igeEitherCategory('wall_box') || contact.igeEitherCategory('fuel')) {
-                                        player._rotate.z = Math.radians(degrees);
-
-                                        var contactRight = contact.m_manifold.m_localPlaneNormal.x === -1;
-                                        var contactLeft = contact.m_manifold.m_localPlaneNormal.x === 1;
-                                        var contactTop = contact.m_manifold.m_localPlaneNormal.y === 1;
-                                        var contactBottom = contact.m_manifold.m_localPlaneNormal.y === -1;
-
-                                        if (velocity > maxWoundVelocity) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && contactBottom && (degrees > 45 || degrees < -45)) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && contactTop && (degrees > -135 || degrees < -225) && (degrees > 225 || degrees < 135)) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && contactLeft && (degrees > 135 || degrees < 45)) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && contactRight && (degrees > -45 || degrees < -135)) {
-                                            player.$crash();
-                                        }
-                                    } else if (contact.igeEitherCategory('wall_br')) {
-                                        player._rotate.z = Math.radians(degrees);
-                                        if (velocity > maxWoundVelocity) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && (degrees > 0 || degrees < -90)) {
-                                            player.$crash();
-                                        }
-                                    } else if (contact.igeEitherCategory('wall_bl')) {
-                                        player._rotate.z = Math.radians(degrees);
-                                        if (velocity > maxWoundVelocity) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && (degrees > 90 || degrees < 0)) {
-                                            player.$crash();
-                                        }
-                                    } else if (contact.igeEitherCategory('wall_tl')) {
-                                        player._rotate.z = Math.radians(degrees);
-                                        if (velocity > maxWoundVelocity) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && (degrees > 180 || degrees < 90)) {
-                                            player.$crash();
-                                        }
-                                    } else if (contact.igeEitherCategory('wall_tr')) {
-                                        player._rotate.z = Math.radians(degrees);
-                                        if (velocity > maxWoundVelocity) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && (degrees > -90 || degrees < -180)) {
-                                            player.$crash();
-                                        }
-                                    } else if (contact.igeEitherCategory('landingPad')) {
-
-                                        // Rotate the player to land on the surface
-                                        player._rotate.z = Math.radians(degrees);
-
-                                        if (velocity > maxWoundVelocity) {
-                                            player.$crash();
-                                        } else if (velocity > minWoundVelocity && (degrees > 45 || degrees < -45)) {
-                                            player.$crash();
-                                        } else if (degrees < 45 || degrees > -45) {
-                                            var landingPad = contact.igeEntityByCategory('landingPad');
-                                            player.$land(landingPad);
-                                        }
-                                    }
-
-                                    if (contact.igeEitherCategory('fuel') && !player._fueling) {
-                                        player.$startFueling(contact.igeEntityByCategory('fuel'), contact);
-                                    }
-                                }
-
-                                if (contact.igeEitherCategory('bullet')) {
-                                    contact.igeEntityByCategory('bullet').destroy();
-                                }
-                            },
-                            // Listen for when contact's end
-                            function (contact) {
-                                if (contact.igeEitherCategory('fuel') && contact.igeEitherCategory('ship')) {
-                                    // Check if it is our sensor
-                                    if (contact.m_fixtureA.IsSensor() || contact.m_fixtureB.IsSensor()) {
-                                        // Sensor has disconnected
-                                        contact.igeEntityByCategory('ship').$stopFueling();
-                                    }
-                                }
-                            }
-                        );
+                        MapGenerator.buildMap.call(self, Map1);
+                        self.contactListener = new ContactListener();
                     }
                 });
             });

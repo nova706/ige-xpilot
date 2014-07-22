@@ -106,6 +106,7 @@ var Wall = IgeEntityBox2d.extend({
             });
         } else {
             this.texture(ige.client.textures.wall[texture]);
+            this.depth(1);
         }
     }
 });

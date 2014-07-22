@@ -71,7 +71,7 @@ var Player = Box2DStreamEntity.extend({
             }
 
             // Add a sensor to the fixtures so we can detect
-            // when the ship is near an orb
+            // when the ship is near a fuel cell
             fixDefs.push({
                 density: 0.0,
                 friction: 0.0,
@@ -198,7 +198,9 @@ var Player = Box2DStreamEntity.extend({
      * @param {LandingPad} landingPad The pad the user landed on
      */
     $land: function (landingPad) {
-        // TODO: Steal the base
+        this._box2dBody.SetAngularVelocity(0);
+        this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
+        this.rotateTo(0, 0, 0);
     },
 
     /**
@@ -317,7 +319,7 @@ var Player = Box2DStreamEntity.extend({
      */
     $startFueling: function (fuelEntity) {
         if (ige.isServer && fuelEntity) {
-            if (this._$isCrashed) {
+            if (this._$isCrashed || this._$fuelEntity) {
                 return;
             }
             this._$fuelEntity = fuelEntity;

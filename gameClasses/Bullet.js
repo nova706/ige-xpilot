@@ -6,6 +6,7 @@ var Bullet = Box2DStreamEntity.extend({
     classId: 'Bullet',
     _$velocity: 800,
     _$lifeSpan: 1500,
+    $shooter: null,
 
     init: function (player) {
         Box2DStreamEntity.prototype.init.call(this);
@@ -17,7 +18,7 @@ var Bullet = Box2DStreamEntity.extend({
         this._rectColor = '#ffffff';
 
         if (ige.isServer) {
-            this._shooter = player;
+            this.$shooter = player;
             this.lifeSpan(this._$lifeSpan);
             this.box2dBody({
                 type: 'dynamic',
@@ -57,6 +58,11 @@ var Bullet = Box2DStreamEntity.extend({
             this._box2dBody.SetAwake(true);
             this._box2dBody.ApplyForce(vector, this._box2dBody.GetWorldCenter());
         }
+    },
+
+    destroy: function () {
+        delete this.$shooter;
+        Box2DStreamEntity.prototype.destroy.call(this);
     }
 });
 
