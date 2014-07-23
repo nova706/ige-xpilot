@@ -45,10 +45,10 @@ var ContactListener = function () {
                 // Two ships collided
                 case 'ship':
                     if (!entity1.$hasShield) {
-                        entity1.$crash();
+                        entity1.crash();
                     }
                     if (!entity2.$hasShield) {
-                        entity2.$crash();
+                        entity2.crash();
                     }
                     break;
 
@@ -63,7 +63,7 @@ var ContactListener = function () {
                         if (shooter && shooter !== entity1 && shooter.category() === 'ship') {
                             shooter.$adjustScore(pointsForShootingShip);
                         }
-                        entity1.$crash();
+                        entity1.crash();
                     }
                     break;
 
@@ -74,38 +74,38 @@ var ContactListener = function () {
                             || (velocity > minWoundVelocity && contactTop && (degrees > -135 || degrees < -225) && (degrees > 225 || degrees < 135))
                             || (velocity > minWoundVelocity && contactLeft && (degrees > 135 || degrees < 45))
                             || (velocity > minWoundVelocity && contactRight && (degrees > -45 || degrees < -135))) {
-                        entity1.$crash();
+                        entity1.crash();
                     }
                     break;
 
                 case 'wall_br':
                     if (velocity > maxWoundVelocity || (velocity > minWoundVelocity && (degrees > 0 || degrees < -90))) {
-                        entity1.$crash();
+                        entity1.crash();
                     }
                     break;
 
                 case 'wall_bl':
                     if (velocity > maxWoundVelocity || (velocity > minWoundVelocity && (degrees > 90 || degrees < 0))) {
-                        entity1.$crash();
+                        entity1.crash();
                     }
                     break;
 
                 case 'wall_tl':
                     if (velocity > maxWoundVelocity || (velocity > minWoundVelocity && (degrees > 180 || degrees < 90))) {
-                        entity1.$crash();
+                        entity1.crash();
                     }
                     break;
 
                 case 'wall_tr':
                     if (velocity > maxWoundVelocity || (velocity > minWoundVelocity && (degrees > -90 || degrees < -180))) {
-                        entity1.$crash();
+                        entity1.crash();
                     }
                     break;
 
                 // The ship has collided with a landing pad
                 case 'landingPad':
                     if (velocity > maxWoundVelocity || (velocity > minWoundVelocity && (degrees > 45 || degrees < -45))) {
-                        entity1.$crash();
+                        entity1.crash();
                     } else if (velocity <= landVelocity && (degrees < 45 || degrees > -45)) {
                         entity1.$land(entity2);
                     }
@@ -118,9 +118,9 @@ var ContactListener = function () {
                             || (velocity > minWoundVelocity && contactTop && (degrees > -135 || degrees < -225) && (degrees > 225 || degrees < 135))
                             || (velocity > minWoundVelocity && contactLeft && (degrees > 135 || degrees < 45))
                             || (velocity > minWoundVelocity && contactRight && (degrees > -45 || degrees < -135))) {
-                        entity1.$crash();
+                        entity1.crash();
                     } else {
-                        entity1.$startFueling(entity2);
+                        entity1.startFueling(entity2);
                     }
                     break;
                 }
@@ -141,7 +141,7 @@ var ContactListener = function () {
                     } else {
 
                         // The ship and turret collided
-                        entity2.$crash();
+                        entity2.crash();
                         entity1.$kill();
                     }
                     break;
@@ -169,7 +169,7 @@ var ContactListener = function () {
             if (contact.igeEitherCategory('fuel') && contact.igeEitherCategory('ship')) {
                 if (contact.m_fixtureA.IsSensor() || contact.m_fixtureB.IsSensor()) {
                     // The ship's fuel sensor has disconnected
-                    contact.igeEntityByCategory('ship').$stopFueling();
+                    contact.igeEntityByCategory('ship').stopFueling();
                 }
             }
 

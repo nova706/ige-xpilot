@@ -76,7 +76,7 @@ var MapGenerator = {
         }
 
         // This entity type is streamed so do not create it on the client
-        if (ige.isServer && landingLayer) {
+        if (landingLayer && (this.playingLocally || ige.isServer)) {
             for (i = 0; i < landingLayer.data.length; i++) {
                 if (landingLayer.data[i] !== 0) {
                     y = Math.floor(i / 40);
@@ -94,7 +94,7 @@ var MapGenerator = {
         }
 
         // This entity type is streamed so do not create it on the client
-        if (ige.isServer && fuelLayer) {
+        if (fuelLayer && (this.playingLocally || ige.isServer)) {
             for (i = 0; i < fuelLayer.data.length; i++) {
                 if (fuelLayer.data[i] !== 0) {
                     y = Math.floor(i / 40);
@@ -109,7 +109,7 @@ var MapGenerator = {
         }
 
         // This entity type is streamed so do not create it on the client
-        if (ige.isServer && turretLayer) {
+        if (turretLayer && (this.playingLocally || ige.isServer)) {
             for (i = 0; i < turretLayer.data.length; i++) {
                 if (turretLayer.data[i] !== 0) {
                     y = Math.floor(i / 40);

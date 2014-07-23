@@ -42,8 +42,6 @@ var Server = IgeClass.extend({
                         ige.network.define('playerControlShootUp', self._onPlayerShootUp);
 
                         // Client Events
-                        ige.network.define('playerThrustStart');
-                        ige.network.define('playerThrustStop');
                         ige.network.define('playerCrash');
                         ige.network.define('playerRespawn');
                         ige.network.define('playerToggleShield');

@@ -1,6 +1,6 @@
 var PlayerBehaviour = function () {
     var sendMessage = function (messageId) {
-        if (!ige.isServer) {
+        if (!ige.isServer && !ige.client.playingLocally) {
             ige.network.send(messageId);
         }
     };

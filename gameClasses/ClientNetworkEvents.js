@@ -52,20 +52,6 @@ var ClientNetworkEvents = {
         }
     },
 
-    _onPlayerThrustStart: function (clientId) {
-        var player = ige.$(clientId);
-        if (player) {
-            player._onTogglePlayerThrust(true);
-        }
-    },
-
-    _onPlayerThrustStop: function (clientId) {
-        var player = ige.$(clientId);
-        if (player) {
-            player._onTogglePlayerThrust(false);
-        }
-    },
-
     _onPlayerCrash: function (clientId) {
         var player = ige.$(clientId);
         if (player) {
@@ -76,7 +62,7 @@ var ClientNetworkEvents = {
     _onPlayerRespawn: function (clientId) {
         var player = ige.$(clientId);
         if (player) {
-            player._onPlayerRespawn();
+            player.respawn();
         }
     },
 

@@ -9,6 +9,7 @@ var igeConfig = {
         {name: 'Wall', path: './gameClasses/Wall'},
         {name: 'Box2DStreamEntity', path: './gameClasses/Box2DStreamEntity'},
         {name: 'Player', path: './gameClasses/Player'},
+        {name: 'PlayerControlBehavior', path: './gameClasses/PlayerControlBehavior'},
         {name: 'Turret', path: './gameClasses/Turret'},
         {name: 'Bullet', path: './gameClasses/Bullet'},
         {name: 'Fuel', path: './gameClasses/Fuel'}

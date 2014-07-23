@@ -261,13 +261,12 @@ var Player = Box2DStreamEntity.extend({
     },
 
     /**
-     * Updates a player's fuel level. This method is streamed to the client
-     * Server Method
+     * Updates a player's fuel level.
      * @param {Number} amount The new fuel level
      * @private
      */
-    _$updateFuel: function (amount) {
-        if (ige.isServer) {
+    _updateFuel: function (amount) {
+        if (ige.isServer || this.id() === ige.client.playerId) {
             if (this._$isCrashed) {
                 return;
             }
@@ -278,169 +277,143 @@ var Player = Box2DStreamEntity.extend({
             }
             this._$fuelLevel = amount;
 
-            var fuelEntityId = (this._$fuelEntity) ? this._$fuelEntity.id() : null;
-            this.$addStreamData('updatePlayerFuel', { fuel: this._$fuelLevel, fuelCellId: fuelEntityId }, false);
-        }
-    },
-
-    /**
-     * Client event handler for when a player's fuel lis updated. This handler updates
-     * the fuel bar for the current user and manages fuel rope entities.
-     * @param {Number} amount The player's new amount of fuel
-     * @param {String} fuelCellId The id of the fuel cell that providing fuel. Used to build the fuel ropes
-     * @private
-     */
-    _onPlayerUpdateFuel: function (amount, fuelCellId) {
-        if (!ige.isServer) {
-
-            if (this.id() === ige.client.playerId) {
-                ige.$('player_fuelBar').progress(amount);
+            if (amount === 100) {
+                this.stopFueling();
             }
 
-            if (fuelCellId) {
-                var self = this;
-                var fuelCell = ige.$(fuelCellId);
-                if (fuelCell) {
-                    if (this._fuelRopeEntity) {
-                        this._fuelRopeEntity.delayDeath();
-                    } else {
-                        this._fuelRopeEntity = new FuelRope(fuelCell, this, function () {
-                            self._fuelRopeEntity = null;
-                        }).mount(ige.client.objectScene);
-                    }
-                }
+            if (!ige.isServer) {
+                ige.$('player_fuelBar').progress(amount);
             }
         }
     },
 
     /**
      * Causes the ship to start taking fuel from a fuel cell entity
-     * Server Method
-     * @param fuelEntity
+     * @param fuelCell
      */
-    $startFueling: function (fuelEntity) {
-        if (ige.isServer && fuelEntity) {
-            if (this._$isCrashed || this._$fuelEntity) {
-                return;
+    startFueling: function (fuelCell) {
+        if (fuelCell && !this._$isCrashed && !this._$fuelEntity) {
+            this._$fuelEntity = fuelCell;
+            if (!ige.isServer) {
+                this._fuelRopeEntity = new FuelRope(fuelCell, this).mount(ige.client.objectScene);
             }
-            this._$fuelEntity = fuelEntity;
         }
     },
 
     /**
      * Causes the ship to stop taking fuel from a fuel cell entity
-     * Server Method
      */
-    $stopFueling: function () {
-        if (ige.isServer) {
-            this._$fuelEntity = null;
+    stopFueling: function () {
+        this._$fuelEntity = null;
+        if (this._fuelRopeEntity) {
+            this._fuelRopeEntity.destroy();
+            delete this._fuelRopeEntity;
         }
     },
 
     /**
-     * Causes a player to crash and starts the respawn timer. This is streamed to the client for the explosion effect.
-     * Server Method
+     * Causes a player to crash and starts the respawn timer.
+     * An event from the server is passed to the clients to allow rendering of other player's crashes.
      */
-    $crash: function () {
+    crash: function () {
         if (ige.isServer) {
-            this._resetControls();
-            this._box2dBody.SetAngularVelocity(0);
-            this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
-            this.rotateTo(0, 0, 0);
-            this.unMount();
-            this._box2dBody.SetAwake(false);
-            this._box2dBody.SetActive(false);
+            ige.server.sendMessage('playerCrash', this.id());
+        }
+
+        if (ige.isServer || ige.client.playingLocally) {
             var self = this;
             setTimeout(function () {
-                self.$respawn();
+                self.respawn();
             }, 3000);
+        }
 
-            ige.server.sendMessage('playerCrash', self.id());
+        this._resetControls();
+        this._box2dBody.SetAngularVelocity(0);
+        this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
+        this.rotateTo(0, 0, 0);
+        this.unMount();
 
-            this._$isCrashed = true;
+        if (this._fuelRopeEntity) {
+            this._fuelRopeEntity.destroy();
+        }
+
+        this._box2dBody.SetAwake(false);
+        this._box2dBody.SetActive(false);
+        this._$isCrashed = true;
+
+        if (!ige.isServer && this.id() === ige.client.playerId) {
+            this._renderExplosion();
+
+            // Create a count down at the death location
+            this._countDownText = new ClientCountDown('Respawn in ', 3, 's', 1000)
+                .translateTo(this._translate.x, this._translate.y, 0)
+                .mount(ige.client.objectScene)
+                .start();
         }
     },
 
     /**
-     * Client event handler for when a player crashes. This creates the explosion effect and displays the respawn timer
+     * Client event handler for when a player crashes. This creates the explosion effect and displays the respawn timer.
+     * This only handles other player's explosions.
      * @private
      */
     _onPlayerCrash: function () {
-        if (!ige.isServer) {
+        if (!ige.isServer && this.id() !== ige.client.playerId) {
             this._resetControls();
 
             if (this._fuelRopeEntity) {
                 this._fuelRopeEntity.destroy();
             }
 
-            // Use a timer to acount for render delay
-            var self = this;
-            setTimeout(function () {
-                self.unMount();
-                new IgeParticleEmitter()
-                    .particle(ExplosionParticle)
-                    .lifeBase(500)
-                    .quantityBase(100)
-                    .quantityTimespan(150)
-                    .deathOpacityBase(0)
-                    .velocityVector(new IgePoint(0, 0, 0), new IgePoint(-0.1, -0.1, 0), new IgePoint(0.1, 0.1, 0))
-                    .linearForceVector(new IgePoint(0, 0, 0))
-                    .particleMountTarget(ige.client.objectScene)
-                    .lifeSpan(150)
-                    .mount(ige.client.objectScene)
-                    .translateTo(self._translate.x, self._translate.y, 0)
-                    .start();
+            this.unMount();
+            this._renderExplosion();
+        }
+    },
 
-                // Create a count down at the death location
-                if (self.id() === ige.client.playerId) {
-                    self._countDownText = new ClientCountDown('Respawn in ', 3, 's', 1000)
-                        .translateTo(self._translate.x, self._translate.y, 0)
-                        .mount(ige.client.objectScene)
-                        .start();
-                }
-            }, 80);
+    /**
+     * Client method to render an explosion at the ship's location.
+     * @private
+     */
+    _renderExplosion: function () {
+        if (!ige.isServer) {
+            new IgeParticleEmitter()
+                .particle(ExplosionParticle)
+                .lifeBase(500)
+                .quantityBase(100)
+                .quantityTimespan(150)
+                .deathOpacityBase(0)
+                .velocityVector(new IgePoint(0, 0, 0), new IgePoint(-0.1, -0.1, 0), new IgePoint(0.1, 0.1, 0))
+                .linearForceVector(new IgePoint(0, 0, 0))
+                .particleMountTarget(ige.client.objectScene)
+                .lifeSpan(150)
+                .mount(ige.client.objectScene)
+                .translateTo(this._translate.x, this._translate.y, 0)
+                .start();
         }
     },
 
     /**
      * Causes a player to respawn at their home base. Streamed to the client to re mount the client entity.
-     * Server Method
      */
-    $respawn: function () {
-        if (ige.isServer) {
-            this._resetControls();
-            this._$isCrashed = false;
-
-            this._$updateFuel(100);
-            this._box2dBody.SetActive(true);
-            this._box2dBody.SetAngularVelocity(0);
-            this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
-            this.goToBase();
-            this.$toggleShield(true, 5000);
-
-            // Reset player transform
-            this.rotateTo(0, 0, 0);
-            this.mount(ige.server.objectScene);
-
-            ige.server.sendMessage('playerRespawn', this.id());
+    respawn: function () {
+        if (this._countDownText) {
+            this._countDownText.destroy();
+            this._countDownText = null;
         }
-    },
 
-    /**
-     * Client event handler for when a player respawns. This remounts the player to the client scene.
-     * @private
-     */
-    _onPlayerRespawn: function () {
-        if (!ige.isServer) {
-            this._resetControls();
-            if (this._countDownText) {
-                this._countDownText.destroy();
-                this._countDownText = null;
-            }
-            var self = this;
-            setTimeout(function () {
-                self.mount(ige.client.objectScene);
-            }, 200);
+        this._resetControls();
+        this._$isCrashed = false;
+
+        this._updateFuel(100);
+        this._box2dBody.SetActive(true);
+        this.$toggleShield(true, 5000);
+        this.goToBase();
+
+        if (ige.isServer) {
+            this.mount(ige.server.objectScene);
+            ige.server.sendMessage('playerRespawn', this.id());
+        } else {
+            this.mount(ige.client.objectScene);
         }
     },
 
@@ -449,7 +422,7 @@ var Player = Box2DStreamEntity.extend({
      * Server Method
      */
     $shoot: function () {
-        if (ige.isServer) {
+        if (ige.isServer || ige.client.playingLocally) {
             var self = this;
             if (this._$isCrashed) {
                 return;
@@ -463,7 +436,7 @@ var Player = Box2DStreamEntity.extend({
                 var mountPoint = this.frontPoint.aabb();
                 new Bullet(this)
                     .translateTo(mountPoint.x, mountPoint.y, 0)
-                    .mount(ige.server.objectScene)
+                    .mount((ige.isServer) ? ige.server.objectScene : ige.client.objectScene)
                     .$fire(radians);
 
             }
@@ -471,35 +444,11 @@ var Player = Box2DStreamEntity.extend({
     },
 
     /**
-     * Starts the player's thrust. This is streamed to the client to show the thrust particle emitter.
-     * Server Method
+     * Client method to toggle a ship's thrust either starting or stopping the particle emitter.
      * @private
-     */
-    _$startThrust: function () {
-        if (ige.isServer && !this.$_thrusting) {
-            this.$_thrusting = true;
-            ige.server.sendMessage('playerThrustStart', this.id());
-        }
-    },
-
-    /**
-     * Stops the player's thrust. This is streamed to the client to hide the thrust particle emitter.
-     * Server Method
-     * @private
-     */
-    _$stopThrust: function () {
-        if (ige.isServer && this.$_thrusting) {
-            this.$_thrusting = false;
-            ige.server.sendMessage('playerThrustStop', this.id());
-        }
-    },
-
-    /**
-     * Client event handler for when a player's thrust is toggled either starting or stopping the particle emitter.
      * @param {Boolean} enabled
-     * @private
      */
-    _onTogglePlayerThrust: function (enabled) {
+    _togglePlayerThrust: function (enabled) {
         if (!ige.isServer) {
             if (enabled && !this._thrusting) {
                 // Enable the particle emitter
@@ -514,39 +463,35 @@ var Player = Box2DStreamEntity.extend({
     },
 
     tick: function (ctx) {
-        if (ige.isServer) {
+        if (!this._$isCrashed) {
 
-            if (!this._$isCrashed) {
-
-                if ((this.controls.left && this.controls.right) || (!this.controls.left && !this.controls.right)) {
-                    this._box2dBody.SetAngularVelocity(0);
-                } else if (this.controls.right) {
-                    this._box2dBody.SetAngularVelocity(5);
-                } else if (this.controls.left) {
-                    this._box2dBody.SetAngularVelocity(-5);
-                }
-
-                if (this.controls.shoot) {
-                    this.$shoot();
-                }
-
-                if (this.controls.thrust && this._$fuelLevel > 0) {
-                    var radians = this._rotate.z + Math.radians(-90);
-                    var thrustVector = new ige.box2d.b2Vec2(Math.cos(radians) * this._$thrustPower, Math.sin(radians) * this._$thrustPower);
-
-                    this._box2dBody.ApplyForce(thrustVector, this._box2dBody.GetWorldCenter());
-                    this._box2dBody.SetAwake(true);
-                    this._$updateFuel(this._$fuelLevel - 0.005 * ige._tickDelta);
-                    this._$startThrust();
-                } else {
-                    this._$stopThrust();
-                }
-
-                if (this._$fuelEntity && this._$fuelLevel < 100) {
-                    this._$updateFuel(this._$fuelLevel + this._$fuelEntity.$takeFuel(0.01 * ige._tickDelta));
-                }
+            if ((this.controls.left && this.controls.right) || (!this.controls.left && !this.controls.right)) {
+                this._box2dBody.SetAngularVelocity(0);
+            } else if (this.controls.right) {
+                this._box2dBody.SetAngularVelocity(5);
+            } else if (this.controls.left) {
+                this._box2dBody.SetAngularVelocity(-5);
             }
 
+            if (this.controls.shoot) {
+                this.$shoot();
+            }
+
+            if (this.controls.thrust && this._$fuelLevel > 0) {
+                var radians = this._rotate.z + Math.radians(-90);
+                var thrustVector = new ige.box2d.b2Vec2(Math.cos(radians) * this._$thrustPower, Math.sin(radians) * this._$thrustPower);
+
+                this._box2dBody.ApplyForce(thrustVector, this._box2dBody.GetWorldCenter());
+                this._box2dBody.SetAwake(true);
+                this._updateFuel(this._$fuelLevel - 0.005 * ige._tickDelta);
+                this._togglePlayerThrust(true);
+            } else {
+                this._togglePlayerThrust(false);
+            }
+
+            if (this._$fuelEntity && this._$fuelLevel < 100) {
+                this._updateFuel(this._$fuelLevel + this._$fuelEntity.takeFuel(0.01 * ige._tickDelta));
+            }
         }
 
         Box2DStreamEntity.prototype.tick.call(this, ctx);
@@ -591,9 +536,9 @@ var Player = Box2DStreamEntity.extend({
 
     _$handleCustomSectionData: function (sectionId, data) {
         switch (sectionId) {
-        case 'updatePlayerFuel':
-            this._onPlayerUpdateFuel(parseFloat(data.fuel), data.fuelCellId);
-            break;
+        /*case 'updatePlayerFuel':
+            ige.$(data.clientId)._onPlayerUpdateFuel(parseFloat(data.fuel), data.fuelCellId);
+            break;*/
         }
     },
 

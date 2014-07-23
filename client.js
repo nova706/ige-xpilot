@@ -88,8 +88,6 @@ var Client = IgeClass.extend({
             ige.network.define('playerRespawn', self._onPlayerRespawn);
             ige.network.define('playerToggleShield', self._onPlayerToggleShield);
             ige.network.define('playerUpdateScore', self._onPlayerUpdateScore);
-            ige.network.define('playerThrustStart', self._onPlayerThrustStart);
-            ige.network.define('playerThrustStop', self._onPlayerThrustStop);
             ige.network.define('turretRespawn', self._onTurretRespawn);
             ige.network.define('turretKilled', self._onTurretKilled);
 
@@ -108,15 +106,14 @@ var Client = IgeClass.extend({
     },
 
     playLocally: function () {
-        // TODO: This is currently a work in progress to move the physics to the client to allow "local play"
-        /*this.playingLocally = true;
+        this.playingLocally = true;
         this.initializeWorld();
         var pad = this.getRandomPad();
         var player = new Player({ hasShield: true, homeBaseId: pad.id() });
         player.addBehaviour('PlayerControl', PlayerBehaviour);
         ige.client.vp1.camera.trackTranslate(player, 20);
         ige.client.playerId = player.id();
-        player.mount(this.objectScene);*/
+        player.mount(this.objectScene);
     },
 
     initializeWorld: function () {

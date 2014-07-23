@@ -5,19 +5,15 @@
  */
 var FuelRope = IgeEntity.extend({
     classId: 'FuelRope',
-    _lifeSpan: 100,
 
-    init: function (fixedEntity, dynamicEntity, deathCallback) {
+    init: function (fixedEntity, dynamicEntity) {
         IgeEntity.prototype.init.call(this);
 
         this.fixed = fixedEntity;
         this.dynamic = dynamicEntity;
-        this.deathCallback = deathCallback;
         this.texture(ige.client.textures.line);
         this.translateTo(fixedEntity._translate.x, fixedEntity._translate.y, 0);
         this.depth(2);
-
-        this.lifeSpan(this._lifeSpan);
     },
 
     tick: function (ctx) {
@@ -30,17 +26,5 @@ var FuelRope = IgeEntity.extend({
         this.y = yDiff;
 
         IgeEntity.prototype.tick.call(this, ctx);
-    },
-
-    /**
-     * Delay the destruction of this entity
-     */
-    delayDeath: function () {
-        this.lifeSpan(this._lifeSpan);
-    },
-
-    destroy: function () {
-        this.deathCallback();
-        IgeEntity.prototype.destroy.call(this);
     }
 });

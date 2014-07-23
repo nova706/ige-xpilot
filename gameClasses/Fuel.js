@@ -63,25 +63,17 @@ var Fuel = Box2DStreamEntity.extend({
      * @private
      */
     _$updateFuel: function (amount) {
-        if (ige.isServer) {
-            if (amount > 100) {
-                amount = 100;
-            } else if (amount < 0) {
-                amount = 0;
-            }
-
-            this._$fuelLevel = amount;
-            this.$addStreamData('updateFuelCellFuel', this._$fuelLevel, false);
+        if (amount > 100) {
+            amount = 100;
+        } else if (amount < 0) {
+            amount = 0;
         }
-    },
 
-    /**
-     * Client event handler to update the fuel cell's level
-     * @param amount
-     * @private
-     */
-    _onFuelCellUpdateFuel: function (amount) {
-        if (!ige.isServer) {
+        this._$fuelLevel = amount;
+
+        if (ige.isServer) {
+            this.$addStreamData('updateFuelCellFuel', this._$fuelLevel, false);
+        } else {
             this.fuelBar.progress(amount);
         }
     },
@@ -90,29 +82,24 @@ var Fuel = Box2DStreamEntity.extend({
      * Takes fuel from the cell and returns the amount taken to the caller.
      * If there is no fuel to take, none will be given. If the amount requested
      * is more than the available fuel, the available fuel will be given.
-     * Server Method
      * @param {Number} amount The amount of fuel to take
      * @returns {Number} The amount of fuel taken
      */
-    $takeFuel: function (amount) {
-        if (ige.isServer) {
-            if (this._$fuelLevel > 5) {
-                var fuelToTake = (amount < this._$fuelLevel) ? amount : this._$fuelLevel;
-                this._$updateFuel(this._$fuelLevel - fuelToTake);
-                return fuelToTake;
-            }
-            return 0;
+    takeFuel: function (amount) {
+        if (this._$fuelLevel > 5) {
+            var fuelToTake = (amount < this._$fuelLevel) ? amount : this._$fuelLevel;
+            this._$updateFuel(this._$fuelLevel - fuelToTake);
+            return fuelToTake;
         }
+        return 0;
     },
 
     tick: function (ctx) {
-        if (ige.isServer) {
-            // Refill the fuel cell if the fuel is not full
-            if (this._$fuelLevel < 100) {
-                var newFuel;
-                newFuel = this._$fuelLevel + 0.001 * ige._tickDelta;
-                this._$updateFuel((newFuel > 100) ? 100 : newFuel);
-            }
+        // Refill the fuel cell if the fuel is not full
+        if (this._$fuelLevel < 100) {
+            var newFuel;
+            newFuel = this._$fuelLevel + 0.001 * ige._tickDelta;
+            this._$updateFuel((newFuel > 100) ? 100 : newFuel);
         }
 
         Box2DStreamEntity.prototype.tick.call(this, ctx);
@@ -120,9 +107,9 @@ var Fuel = Box2DStreamEntity.extend({
 
     _$handleCustomSectionData: function (sectionId, data) {
         switch (sectionId) {
-        case 'updateFuelCellFuel':
+        /*case 'updateFuelCellFuel':
             this._onFuelCellUpdateFuel(parseFloat(data));
-            break;
+            break;*/
         }
     },
 
