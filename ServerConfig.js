@@ -1,6 +1,7 @@
 var igeConfig = {
     include: [
         {name: 'ServerNetworkEvents', path: './gameClasses/ServerNetworkEvents'},
+        {name: 'SceneGenerator', path: './gameClasses/SceneGenerator'},
         {name: 'MapGenerator', path: './gameClasses/MapGenerator'},
         {name: 'ContactListener', path: './gameClasses/ContactListener'},
         {name: 'Map1', path: './maps/map1'},

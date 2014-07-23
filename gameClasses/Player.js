@@ -26,95 +26,95 @@ var Player = Box2DStreamEntity.extend({
             .width(20)
             .height(20);
 
-        if (ige.isServer) {
-            this.homeBase = createData.homeBase;
-            this.homeBase.$occupy();
+        this.addComponent(IgeVelocityComponent);
 
-            this.addComponent(IgeVelocityComponent)
-                .id(createData.id);
+        // Define the polygon for collision
+        var triangles,
+            fixDefs,
+            collisionPoly = new IgePoly2d()
+                .addPoint(0, -this._geometry.y2)
+                .addPoint(this._geometry.x2, this._geometry.y2)
+                .addPoint(0, this._geometry.y2 - 5)
+                .addPoint(-this._geometry.x2, this._geometry.y2);
 
-            // Define the polygon for collision
-            var triangles,
-                fixDefs,
-                collisionPoly = new IgePoly2d()
-                    .addPoint(0, -this._geometry.y2)
-                    .addPoint(this._geometry.x2, this._geometry.y2)
-                    .addPoint(0, this._geometry.y2 - 5)
-                    .addPoint(-this._geometry.x2, this._geometry.y2);
+        // Scale the polygon by the box2d scale ratio
+        collisionPoly.divide(ige.box2d._scaleRatio);
 
-            // Scale the polygon by the box2d scale ratio
-            collisionPoly.divide(ige.box2d._scaleRatio);
+        // Now convert this polygon into an array of triangles
+        triangles = collisionPoly.triangulate();
+        this.triangles = triangles;
 
-            // Now convert this polygon into an array of triangles
-            triangles = collisionPoly.triangulate();
-            this.triangles = triangles;
+        // Create an array of box2d fixture definitions
+        // based on the triangles
+        fixDefs = [];
 
-            // Create an array of box2d fixture definitions
-            // based on the triangles
-            fixDefs = [];
-
-            var i;
-            for (i = 0; i < this.triangles.length; i++) {
-                fixDefs.push({
-                    density: 1.0,
-                    friction: 1.0,
-                    restitution: 0.2,
-                    filter: {
-                        categoryBits: 0x0004,
-                        maskBits: 0xffff & ~0x0008
-                    },
-                    shape: {
-                        type: 'polygon',
-                        data: this.triangles[i]
-                    }
-                });
-            }
-
-            // Add a sensor to the fixtures so we can detect
-            // when the ship is near a fuel cell
+        var i;
+        for (i = 0; i < this.triangles.length; i++) {
             fixDefs.push({
-                density: 0.0,
-                friction: 0.0,
-                restitution: 0.0,
-                isSensor: true,
+                density: 1.0,
+                friction: 1.0,
+                restitution: 0.2,
                 filter: {
-                    categoryBits: 0x0008,
-                    maskBits: 0x0100
+                    categoryBits: 0x0004,
+                    maskBits: 0xffff & ~0x0008
                 },
                 shape: {
-                    type: 'circle',
-                    data: {
-                        radius: 60
-                    }
+                    type: 'polygon',
+                    data: this.triangles[i]
                 }
             });
+        }
 
-            // Setup the box2d physics properties
-            self.box2dBody({
-                type: 'dynamic',
-                linearDamping: 0.0,
-                angularDamping: 0.5,
-                allowSleep: true,
-                bullet: true,
-                gravitic: true,
-                fixedRotation: false,
-                fixtures: fixDefs
-            });
+        // Add a sensor to the fixtures so we can detect
+        // when the ship is near a fuel cell
+        fixDefs.push({
+            density: 0.0,
+            friction: 0.0,
+            restitution: 0.0,
+            isSensor: true,
+            filter: {
+                categoryBits: 0x0008,
+                maskBits: 0x0100
+            },
+            shape: {
+                type: 'circle',
+                data: {
+                    radius: 60
+                }
+            }
+        });
 
-            this.frontPoint = new IgeEntity()
-                .translateTo(0, -18, 0)
-                .width(2)
-                .height(2)
-                .mount(this);
+        // Setup the box2d physics properties
+        self.box2dBody({
+            type: 'dynamic',
+            linearDamping: 0.0,
+            angularDamping: 0.5,
+            allowSleep: true,
+            bullet: true,
+            gravitic: true,
+            fixedRotation: false,
+            fixtures: fixDefs
+        });
 
+        this.frontPoint = new IgeEntity()
+            .translateTo(0, -18, 0)
+            .width(2)
+            .height(2)
+            .mount(this);
+
+        this.homeBase = ige.$(createData.homeBaseId);
+        if (this.homeBase) {
+            this.homeBase.$occupy();
+        }
+
+        if (ige.isServer) {
+            this.id(createData.id);
             //this.addBehaviour('control_behaviour', this._behaviour);
 
             this.$hasShield = createData.hasShield;
             if (this.$hasShield) {
                 this.$toggleShield(true, 5000);
             }
-
-            this.$goToBase();
 
         } else {
             self.texture(ige.client.textures.ship);
@@ -139,6 +139,8 @@ var Player = Box2DStreamEntity.extend({
                 self.shield.hide();
             }
         }
+
+        this.goToBase();
 
         this._$streamActionSections = ['updatePlayerFuel'];
         this.streamSections(['transform'].concat(this._$streamActionSections));
@@ -205,10 +207,9 @@ var Player = Box2DStreamEntity.extend({
 
     /**
      * Repositions the player to their claimed landing pad
-     * Server Method
      */
-    $goToBase: function () {
-        if (ige.isServer) {
+    goToBase: function () {
+        if (this.homeBase) {
             this._box2dBody.SetAngularVelocity(0);
             this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
             this.rotateTo(0, 0, 0);
@@ -278,7 +279,7 @@ var Player = Box2DStreamEntity.extend({
             this._$fuelLevel = amount;
 
             var fuelEntityId = (this._$fuelEntity) ? this._$fuelEntity.id() : null;
-            this.$addStreamData('updatePlayerFuel', { clientId: this.id(), fuel: this._$fuelLevel, fuelCellId: fuelEntityId }, false);
+            this.$addStreamData('updatePlayerFuel', { fuel: this._$fuelLevel, fuelCellId: fuelEntityId }, false);
         }
     },
 
@@ -414,7 +415,7 @@ var Player = Box2DStreamEntity.extend({
             this._box2dBody.SetActive(true);
             this._box2dBody.SetAngularVelocity(0);
             this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
-            this.$goToBase();
+            this.goToBase();
             this.$toggleShield(true, 5000);
 
             // Reset player transform
@@ -475,7 +476,8 @@ var Player = Box2DStreamEntity.extend({
      * @private
      */
     _$startThrust: function () {
-        if (ige.isServer) {
+        if (ige.isServer && !this.$_thrusting) {
+            this.$_thrusting = true;
             ige.server.sendMessage('playerThrustStart', this.id());
         }
     },
@@ -486,7 +488,8 @@ var Player = Box2DStreamEntity.extend({
      * @private
      */
     _$stopThrust: function () {
-        if (ige.isServer) {
+        if (ige.isServer && this.$_thrusting) {
+            this.$_thrusting = false;
             ige.server.sendMessage('playerThrustStop', this.id());
         }
     },
@@ -544,54 +547,6 @@ var Player = Box2DStreamEntity.extend({
                 }
             }
 
-        } else {
-            if (ige.input.actionState('left')) {
-                if (!this.controls.left) {
-                    this.controls.left = true;
-                    ige.network.send('playerControlLeftDown');
-                }
-            } else {
-                if (this.controls.left) {
-                    this.controls.left = false;
-                    ige.network.send('playerControlLeftUp');
-                }
-            }
-
-            if (ige.input.actionState('right')) {
-                if (!this.controls.right) {
-                    this.controls.right = true;
-                    ige.network.send('playerControlRightDown');
-                }
-            } else {
-                if (this.controls.right) {
-                    this.controls.right = false;
-                    ige.network.send('playerControlRightUp');
-                }
-            }
-
-            if (ige.input.actionState('thrust')) {
-                if (!this.controls.thrust) {
-                    this.controls.thrust = true;
-                    ige.network.send('playerControlThrustDown');
-                }
-            } else {
-                if (this.controls.thrust) {
-                    this.controls.thrust = false;
-                    ige.network.send('playerControlThrustUp');
-                }
-            }
-
-            if (ige.input.actionState('shoot')) {
-                if (!this.controls.shoot) {
-                    this.controls.shoot = true;
-                    ige.network.send('playerControlShootDown');
-                }
-            } else {
-                if (this.controls.shoot) {
-                    this.controls.shoot = false;
-                    ige.network.send('playerControlShootUp');
-                }
-            }
         }
 
         Box2DStreamEntity.prototype.tick.call(this, ctx);
@@ -600,12 +555,12 @@ var Player = Box2DStreamEntity.extend({
     destroy: function () {
 
         // Un-occupy the home base
-        if (ige.isServer && this.homeBase) {
+        if (this.homeBase) {
             this.homeBase.$unOccupy();
         }
 
         // Destroy any linked fuel rope
-        if (!ige.isServer && this._fuelRopeEntity) {
+        if (this._fuelRopeEntity) {
             this._fuelRopeEntity.destroy();
         }
 
@@ -637,7 +592,7 @@ var Player = Box2DStreamEntity.extend({
     _$handleCustomSectionData: function (sectionId, data) {
         switch (sectionId) {
         case 'updatePlayerFuel':
-            ige.$(data.clientId)._onPlayerUpdateFuel(parseFloat(data.fuel), data.fuelCellId);
+            this._onPlayerUpdateFuel(parseFloat(data.fuel), data.fuelCellId);
             break;
         }
     },
@@ -650,7 +605,8 @@ var Player = Box2DStreamEntity.extend({
     streamCreateData: function () {
         return {
             id: this.id(),
-            hasShield: this.$hasShield
+            hasShield: this.$hasShield,
+            homeBaseId: this.homeBase.id()
         };
     }
 });

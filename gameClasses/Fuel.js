@@ -13,26 +13,26 @@ var Fuel = Box2DStreamEntity.extend({
             .width(40)
             .height(40);
 
-        if (ige.isServer) {
+        this.box2dBody({
+            type: 'static',
+            allowSleep: true,
+            fixtures: [
+                {
+                    filter: {
+                        categoryBits: 0x0100,
+                        maskBits: 0xffff
+                    },
+                    shape: {
+                        type: 'rectangle'
+                    }
+                }
+            ]
+        });
 
+        if (ige.isServer) {
             this.fuelBarX = createData.x;
             this.fuelBarY = createData.y;
-
-            this.box2dBody({
-                type: 'static',
-                allowSleep: true,
-                fixtures: [
-                    {
-                        filter: {
-                            categoryBits: 0x0100,
-                            maskBits: 0xffff
-                        },
-                        shape: {
-                            type: 'rectangle'
-                        }
-                    }
-                ]
-            }).streamMode(1);
+            this.streamMode(1);
         } else {
             this.fuelBar = new IgeUiProgressBar()
                 .max(100)

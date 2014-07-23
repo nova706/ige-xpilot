@@ -65,46 +65,45 @@ var Wall = IgeEntityBox2d.extend({
             .width(40)
             .height(40);
 
-        if (ige.isServer) {
+        if (collisionPoly) {
+            // Scale the polygon by the box2d scale ratio
+            collisionPoly.divide(ige.box2d._scaleRatio);
 
-            if (collisionPoly) {
-                // Scale the polygon by the box2d scale ratio
-                collisionPoly.divide(ige.box2d._scaleRatio);
-
-                // Now convert this polygon into an array of triangles
-                triangles = collisionPoly.triangulate();
-                this.triangles = triangles;
-                var i;
-                for (i = 0; i < this.triangles.length; i++) {
-                    fixDefs.push({
-                        filter: {
-                            categoryBits: 0x0006,
-                            maskBits: 0xffff
-                        },
-                        shape: {
-                            type: 'polygon',
-                            data: this.triangles[i]
-                        }
-                    });
-                }
-            } else {
+            // Now convert this polygon into an array of triangles
+            triangles = collisionPoly.triangulate();
+            this.triangles = triangles;
+            var i;
+            for (i = 0; i < this.triangles.length; i++) {
                 fixDefs.push({
                     filter: {
                         categoryBits: 0x0006,
                         maskBits: 0xffff
                     },
                     shape: {
-                        type: 'rectangle'
+                        type: 'polygon',
+                        data: this.triangles[i]
                     }
                 });
             }
-
-            this.box2dBody({
-                type: 'static',
-                allowSleep: true,
-                fixtures: fixDefs
-            });
         } else {
+            fixDefs.push({
+                filter: {
+                    categoryBits: 0x0006,
+                    maskBits: 0xffff
+                },
+                shape: {
+                    type: 'rectangle'
+                }
+            });
+        }
+
+        this.box2dBody({
+            type: 'static',
+            allowSleep: true,
+            fixtures: fixDefs
+        });
+
+        if (!ige.isServer) {
             this.texture(ige.client.textures.wall[texture]);
             this.depth(1);
         }

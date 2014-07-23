@@ -29,11 +29,8 @@ var Client = IgeClass.extend({
         self.textures.wall.bl = new IgeTexture('./assets/walls/BL.js');
         self.textures.wall.br = new IgeTexture('./assets/walls/BR.js');
 
-        // Enable networking
-        ige.addComponent(IgeNetIoComponent);
-
-        // Implement our game methods
-        this.implement(ClientNetworkEvents);
+        this.implement(MapGenerator);
+        this.implement(SceneGenerator);
 
         // Add physics and setup physics world
         ige.addComponent(IgeBox2dComponent)
@@ -53,118 +50,79 @@ var Client = IgeClass.extend({
             ige.start(function (success) {
                 // Check if the engine started successfully
                 if (success) {
-                    // Start the networking (you can do this elsewhere if it
-                    // makes sense to connect to the server later on rather
-                    // than before the scene etc are created... maybe you want
-                    // a splash screen or a menu first? Then connect after you've
-                    // got a username or something?
-                    // TODO: Create a splash screen for setting the server location for testing. Localhost works fine for local testing but using the IP
-                    // TODO: address, you can test multiplayer as well
-                    ige.network.start('http://localhost:2000', function () {
 
-                        ige.network.define('playerEntity', self._onPlayerEntity);
-                        ige.network.define('playerThrustStart', self._onPlayerThrustStart);
-                        ige.network.define('playerThrustStop', self._onPlayerThrustStop);
-                        ige.network.define('playerCrash', self._onPlayerCrash);
-                        ige.network.define('playerRespawn', self._onPlayerRespawn);
-                        ige.network.define('playerToggleShield', self._onPlayerToggleShield);
-                        ige.network.define('playerUpdateScore', self._onPlayerUpdateScore);
-                        ige.network.define('turretRespawn', self._onTurretRespawn);
-                        ige.network.define('turretKilled', self._onTurretKilled);
+                    // Define our player controls
+                    ige.input.mapAction('left', ige.input.key.left);
+                    ige.input.mapAction('right', ige.input.key.right);
+                    ige.input.mapAction('thrust', ige.input.key.up);
+                    ige.input.mapAction('shoot', ige.input.key.space);
 
-                        // Setup the network stream handler
-                        ige.network.addComponent(IgeStreamComponent)
-                            .stream.renderLatency(80); // Render the simulation 160 milliseconds in the past
-
-                        // TODO: Move scene creation to another class file
-                        self.mainScene = new IgeScene2d()
-                            .id('mainScene');
-
-                        self.objectScene = new IgeScene2d()
-                            .id('objectScene')
-                            .mount(self.mainScene);
-
-                        self.uiScene = new IgeScene2d()
-                            .id('uiScene')
-                            .ignoreCamera(true)
-                            .depth(10)
-                            .mount(self.mainScene);
-
-                        self.backScene = new IgeScene2d()
-                            .id('backScene')
-                            .translateTo(27, 17, 0)
-                            .backgroundPattern(ige.client.textures.space, 'repeat', false, false)
-                            .mount(self.mainScene);
-
-                        // Create UI elements
-                        new IgeFontEntity()
-                            .texture(ige.client.textures.font)
-                            .width(100)
-                            .text('Score')
-                            .top(5)
-                            .right(10)
-                            .mount(self.uiScene);
-
-                        new IgeFontEntity()
-                            .id('scoreText')
-                            .texture(ige.client.textures.font)
-                            .width(100)
-                            .text('0 points')
-                            .colorOverlay('#ff6000')
-                            .top(35)
-                            .right(10)
-                            .mount(self.uiScene);
-
-                        new IgeFontEntity()
-                            .texture(ige.client.textures.font)
-                            .width(100)
-                            .text('Fuel Level')
-                            .top(80)
-                            .right(10)
-                            .mount(self.uiScene);
-
-                        // Define the player fuel bar
-                        new IgeUiProgressBar()
-                            .id('player_fuelBar')
-                            .max(100)
-                            .min(0)
-                            .right(10)
-                            .top(120)
-                            //.translateTo(0, -25, 0)
-                            .width(100)
-                            .height(10)
-                            .barBackColor('#953800')
-                            .barColor('#ff6000')
-                            .mount(ige.client.uiScene);
-
-                        // Create the main viewport and set the scene
-                        // it will "look" at as the new scene1 we just
-                        // created above
-                        self.vp1 = new IgeViewport()
-                            .id('vp1')
-                            .autoSize(true)
-                            .scene(self.mainScene)
-                            .drawBounds(false)
-                            .drawBoundsData(true)
-                            .mount(ige);
-
-                        MapGenerator.buildMap.call(self, Map1);
-
-                        // Define our player controls
-                        ige.input.mapAction('left', ige.input.key.left);
-                        ige.input.mapAction('right', ige.input.key.right);
-                        ige.input.mapAction('thrust', ige.input.key.up);
-                        ige.input.mapAction('shoot', ige.input.key.space);
-
-                        // Ask the server to create an entity for us
-                        ige.network.send('playerEntity');
-
-                        ige.network.debugMax(10);
-                        ige.network.debug(true);
-                    });
+                    self.connectToServer();
                 }
             });
         });
+    },
+
+    connectToServer: function (serverLocation) {
+
+        // Enable networking
+        ige.addComponent(IgeNetIoComponent);
+
+        // Implement our game methods
+        this.implement(ClientNetworkEvents);
+
+        var self = this;
+        serverLocation = serverLocation || 'http://localhost:2000';
+
+        // Start the networking (you can do this elsewhere if it
+        // makes sense to connect to the server later on rather
+        // than before the scene etc are created... maybe you want
+        // a splash screen or a menu first? Then connect after you've
+        // got a username or something?
+        // TODO: Create a splash screen for setting the server location for testing. Localhost works fine for local testing but using the IP
+        // TODO: address, you can test multiplayer as well
+        ige.network.start(serverLocation, function () {
+
+            ige.network.define('playerEntity', self._onPlayerEntity);
+            ige.network.define('playerCrash', self._onPlayerCrash);
+            ige.network.define('playerRespawn', self._onPlayerRespawn);
+            ige.network.define('playerToggleShield', self._onPlayerToggleShield);
+            ige.network.define('playerUpdateScore', self._onPlayerUpdateScore);
+            ige.network.define('playerThrustStart', self._onPlayerThrustStart);
+            ige.network.define('playerThrustStop', self._onPlayerThrustStop);
+            ige.network.define('turretRespawn', self._onTurretRespawn);
+            ige.network.define('turretKilled', self._onTurretKilled);
+
+            // Setup the network stream handler
+            ige.network.addComponent(IgeStreamComponent)
+                .stream.renderLatency(80); // Render the simulation 160 milliseconds in the past
+
+            self.initializeWorld();
+
+            // Ask the server to create an entity for us
+            ige.network.send('playerEntity');
+
+            ige.network.debugMax(10);
+            ige.network.debug(true);
+        });
+    },
+
+    playLocally: function () {
+        // TODO: This is currently a work in progress to move the physics to the client to allow "local play"
+        /*this.playingLocally = true;
+        this.initializeWorld();
+        var pad = this.getRandomPad();
+        var player = new Player({ hasShield: true, homeBaseId: pad.id() });
+        player.addBehaviour('PlayerControl', PlayerBehaviour);
+        ige.client.vp1.camera.trackTranslate(player, 20);
+        ige.client.playerId = player.id();
+        player.mount(this.objectScene);*/
+    },
+
+    initializeWorld: function () {
+        this.buildScene();
+        this.buildMap(Map1);
+        this.contactListener = new ContactListener();
     },
 
     updateScore: function (newScore) {

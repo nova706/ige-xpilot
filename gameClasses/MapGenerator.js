@@ -3,9 +3,9 @@
  */
 var MapGenerator = {
 
-    buildMap: function (data) {
+    landingPads: [],
 
-        this.landingPads = [];
+    buildMap: function (data) {
 
         // TODO: Move map creation logic to a separate class file
         // TODO: Change Gravity based on map
@@ -145,6 +145,25 @@ var MapGenerator = {
                 }
             }
         }
+    },
+
+    /**
+     * Returns a random unoccupied landing pad in the map
+     * @returns {LandingPad}
+     */
+    getRandomPad: function () {
+        var openPads = [];
+        var i;
+        for (i = 0; i < this.landingPads.length; i++) {
+            if (!this.landingPads[i].$isOccupied) {
+                openPads.push(this.landingPads[i]);
+            }
+        }
+        if (openPads.length > 0) {
+            return openPads[Math.floor(Math.random() * openPads.length)];
+        }
+
+        return null;
     }
 
 };

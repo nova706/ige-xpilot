@@ -13,6 +13,7 @@ var Server = IgeClass.extend({
 
         // Add the server-side game methods / event handlers
         this.implement(ServerNetworkEvents);
+        this.implement(SceneGenerator);
         this.implement(MapGenerator);
 
         ige.addComponent(IgeBox2dComponent)
@@ -58,28 +59,16 @@ var Server = IgeClass.extend({
                         // Accept incoming network connections
                         ige.network.acceptConnections(true);
 
-                        // TODO: Move scene creation to another class file
-                        self.mainScene = new IgeScene2d()
-                            .id('mainScene');
-
-                        self.objectScene = new IgeScene2d()
-                            .id('objectScene')
-                            .mount(self.mainScene);
-
-                        // Create the main viewport and set the scene
-                        // it will "look" at as the new scene1 we just
-                        // created above
-                        self.vp1 = new IgeViewport()
-                            .id('vp1')
-                            .autoSize(true)
-                            .scene(self.mainScene)
-                            .mount(ige);
-
-                        MapGenerator.buildMap.call(self, Map1);
-                        self.contactListener = new ContactListener();
+                        self.initializeWorld();
                     }
                 });
             });
+    },
+
+    initializeWorld: function () {
+        this.buildScene();
+        this.buildMap(Map1);
+        this.contactListener = new ContactListener();
     },
 
     /**
@@ -96,25 +85,6 @@ var Server = IgeClass.extend({
                 delete self.messagesSending[messageId];
             }, 320);
         }
-    },
-
-    /**
-     * Returns a random unoccupied landing pad in the map
-     * @returns {LandingPad}
-     */
-    getRandomPad: function () {
-        var openPads = [];
-        var i;
-        for (i = 0; i < this.landingPads.length; i++) {
-            if (!this.landingPads[i].$isOccupied) {
-                openPads.push(this.landingPads[i]);
-            }
-        }
-        if (openPads.length > 0) {
-            return openPads[Math.floor(Math.random() * openPads.length)];
-        }
-
-        return null;
     }
 });
 

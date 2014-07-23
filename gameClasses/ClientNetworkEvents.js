@@ -21,6 +21,12 @@ var ClientNetworkEvents = {
             var self = this;
             self._eventListener = ige.network.stream.on('entityCreated', function (entity) {
                 if (entity.id() === data) {
+
+                    // Add our controls
+                    entity.addBehaviour('PlayerControl', PlayerBehaviour);
+
+                    ige.$('player_fuelBar').progress(100);
+
                     // Tell the camera to track out player entity
                     ige.client.vp1.camera.trackTranslate(ige.$(data), 20);
                     ige.client.playerId = entity.id();

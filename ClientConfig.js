@@ -2,13 +2,16 @@ var igeClientConfig = {
     include: [
         /* Your custom game JS scripts */
         './gameClasses/ClientNetworkEvents.js',
+        './gameClasses/SceneGenerator.js',
         './gameClasses/MapGenerator.js',
+        './gameClasses/ContactListener.js',
 
         './components/TouchControllerComponent.js',
 
         './maps/map1.js',
         './gameClasses/Box2DStreamEntity.js',
         './gameClasses/Player.js',
+        './gameClasses/PlayerControlBehavior.js',
         './gameClasses/Turret.js',
         './gameClasses/Bullet.js',
         './gameClasses/FuelRope.js',

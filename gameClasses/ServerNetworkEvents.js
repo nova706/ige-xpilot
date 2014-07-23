@@ -31,7 +31,7 @@ var ServerNetworkEvents = {
                 this.log('No Pads Available', 'error');
             }
 
-            ige.server.players[clientId] = new Player({ id: clientId, homeBase: pad, hasShield: true })
+            ige.server.players[clientId] = new Player({ id: clientId, homeBaseId: pad.id(), hasShield: true })
                 .streamMode(1)
                 .mount(ige.server.objectScene);
 
