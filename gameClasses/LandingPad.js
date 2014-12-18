@@ -7,31 +7,32 @@ var LandingPad = IgeEntityBox2d.extend({
     classId: 'LandingPad',
     $isOccupied: false,
 
-    init: function () {
+    init: function (id) {
         IgeEntityBox2d.prototype.init.call(this);
+
+        this.id(id);
 
         this.category('landingPad')
             .width(40)
             .height(3);
 
-        if (ige.isServer) {
-            this.box2dBody({
-                type: 'static',
-                allowSleep: true,
-                fixtures: [
-                    {
-                        filter: {
-                            categoryBits: 0x0002,
-                            maskBits: 0xffff
-                        },
-                        shape: {
-                            type: 'rectangle'
-                        }
+        this.box2dBody({
+            type: 'static',
+            allowSleep: true,
+            fixtures: [
+                {
+                    filter: {
+                        categoryBits: 0x0002,
+                        maskBits: 0xffff
+                    },
+                    shape: {
+                        type: 'rectangle'
                     }
-                ]
-            });
-            this.streamMode(1);
-        } else {
+                }
+            ]
+        });
+
+        if (!ige.isServer) {
             this._rectColor = '#ffffff';
             this.texture(ige.client.textures.rectangle);
             this.depth(2);

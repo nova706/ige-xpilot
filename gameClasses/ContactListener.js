@@ -59,9 +59,9 @@ var ContactListener = function () {
                         // Ignore the contact if the ship has a shield
                         contact.SetEnabled(false);
                     } else {
-                        shooter = entity2.$shooter;
+                        shooter = ige.$(entity2.$shooter);
                         if (shooter && shooter !== entity1 && shooter.category() === 'ship') {
-                            shooter.$adjustScore(pointsForShootingShip);
+                            shooter.adjustScore(pointsForShootingShip);
                         }
                         entity1.crash();
                     }
@@ -107,7 +107,7 @@ var ContactListener = function () {
                     if (velocity > maxWoundVelocity || (velocity > minWoundVelocity && (degrees > 45 || degrees < -45))) {
                         entity1.crash();
                     } else if (velocity <= landVelocity && (degrees < 45 || degrees > -45)) {
-                        entity1.$land(entity2);
+                        entity1.land(entity2);
                     }
                     break;
 
@@ -137,21 +137,21 @@ var ContactListener = function () {
                     if (contact.m_fixtureA.IsSensor() || contact.m_fixtureB.IsSensor()) {
 
                         // Ship in range of turret
-                        entity1.$startShooting();
+                        entity1.startShooting();
                     } else {
 
                         // The ship and turret collided
                         entity2.crash();
-                        entity1.$kill();
+                        entity1.kill();
                     }
                     break;
 
                 // A bullet hit the turret
                 case 'bullet':
-                    entity1.$kill();
-                    shooter = entity2.$shooter;
+                    entity1.kill();
+                    shooter = ige.$(entity2.$shooter);
                     if (shooter && shooter.category() === 'ship') {
-                        shooter.$adjustScore(pointsForShootingTurret);
+                        shooter.adjustScore(pointsForShootingTurret);
                     }
                     break;
                 }
@@ -176,7 +176,7 @@ var ContactListener = function () {
             if (contact.igeEitherCategory('turret')) {
                 if (contact.m_fixtureA.IsSensor() || contact.m_fixtureB.IsSensor()) {
                     // The ship is out of range of the turret's sensor
-                    contact.igeEntityByCategory('turret').$stopShooting();
+                    contact.igeEntityByCategory('turret').stopShooting();
                 }
             }
         }

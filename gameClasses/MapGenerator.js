@@ -76,7 +76,7 @@ var MapGenerator = {
         }
 
         // This entity type is streamed so do not create it on the client
-        if (landingLayer && (this.playingLocally || ige.isServer)) {
+        if (landingLayer) {
             for (i = 0; i < landingLayer.data.length; i++) {
                 if (landingLayer.data[i] !== 0) {
                     y = Math.floor(i / 40);
@@ -84,7 +84,7 @@ var MapGenerator = {
                     x = x * 40;
                     y = y * 40;
                     y -= 20;
-                    landingPad = new LandingPad()
+                    landingPad = new LandingPad('lp-' + i)
                         .translateTo(x, y, 0)
                         .mount(this.objectScene);
 

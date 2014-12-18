@@ -9,6 +9,31 @@ var Fuel = Box2DStreamEntity.extend({
     init: function (createData) {
         Box2DStreamEntity.prototype.init.call(this);
 
+        if (ige.isServer) {
+            this.streamMode(1);
+            this.streamSyncInterval(500);
+        } else {
+            this.fuelBar = new IgeUiProgressBar()
+                .max(100)
+                .min(0)
+                .width(40)
+                .height(40)
+                .barColor('#fc3a24')
+                .barBorderColor("#4c7efc")
+                .barBackColor("transparent")
+                .mount(ige.client.objectScene)
+                .depth(1)
+                .progress(this._$fuelLevel)
+                .rotateBy(0, 0, Math.radians(-90));
+
+            if (createData) {
+                this.fuelBar.translateTo(createData.x, createData.y, 0);
+            }
+        }
+
+        this.fuelBarX = createData.x;
+        this.fuelBarY = createData.y;
+
         this.category('fuel')
             .width(40)
             .height(40);
@@ -28,29 +53,6 @@ var Fuel = Box2DStreamEntity.extend({
                 }
             ]
         });
-
-        if (ige.isServer) {
-            this.fuelBarX = createData.x;
-            this.fuelBarY = createData.y;
-            this.streamMode(1);
-        } else {
-            this.fuelBar = new IgeUiProgressBar()
-                .max(100)
-                .min(0)
-                .width(40)
-                .height(40)
-                .barColor('#fc3a24')
-                .barBorderColor("#4c7efc")
-                .barBackColor("transparent")
-                .mount(ige.client.objectScene)
-                .depth(1)
-                .progress(this._$fuelLevel)
-                .rotateBy(0, 0, Math.radians(-90));
-
-            if (createData) {
-                this.fuelBar.translateTo(createData.x, createData.y, 0);
-            }
-        }
 
         this._$streamActionSections = ['updateFuelCellFuel'];
         this.streamSections(['transform'].concat(this._$streamActionSections));

@@ -62,7 +62,7 @@ var ClientNetworkEvents = {
     _onPlayerRespawn: function (clientId) {
         var player = ige.$(clientId);
         if (player) {
-            player.respawn();
+            player._onPlayerRespawn();
         }
     },
 

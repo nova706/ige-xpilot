@@ -16,7 +16,7 @@ var FuelRope = IgeEntity.extend({
         this.depth(2);
     },
 
-    tick: function (ctx) {
+    update: function (ctx) {
 
         // Move the entity based on the dynamic entity's position
         var xDiff = this.dynamic._translate.x - this.fixed._translate.x;
@@ -25,6 +25,6 @@ var FuelRope = IgeEntity.extend({
         this.x = xDiff;
         this.y = yDiff;
 
-        IgeEntity.prototype.tick.call(this, ctx);
+        IgeEntity.prototype.update.call(this, ctx);
     }
 });

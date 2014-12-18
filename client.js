@@ -58,6 +58,7 @@ var Client = IgeClass.extend({
                     ige.input.mapAction('shoot', ige.input.key.space);
 
                     self.connectToServer();
+                    //self.playLocally();
                 }
             });
         });
@@ -72,7 +73,7 @@ var Client = IgeClass.extend({
         this.implement(ClientNetworkEvents);
 
         var self = this;
-        serverLocation = serverLocation || 'http://localhost:2000';
+        serverLocation = serverLocation || 'http://192.168.1.134:2000';
 
         // Start the networking (you can do this elsewhere if it
         // makes sense to connect to the server later on rather
@@ -93,15 +94,12 @@ var Client = IgeClass.extend({
 
             // Setup the network stream handler
             ige.network.addComponent(IgeStreamComponent)
-                .stream.renderLatency(80); // Render the simulation 160 milliseconds in the past
+                .stream.renderLatency(100); // Render the simulation 160 milliseconds in the past
 
             self.initializeWorld();
 
             // Ask the server to create an entity for us
             ige.network.send('playerEntity');
-
-            ige.network.debugMax(10);
-            ige.network.debug(true);
         });
     },
 
