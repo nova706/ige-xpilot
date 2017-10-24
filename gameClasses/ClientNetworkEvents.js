@@ -27,7 +27,7 @@ var ClientNetworkEvents = {
 
                     ige.$('player_fuelBar').progress(100);
 
-                    // Tell the camera to track out player entity
+                    // Tell the camera to track our player entity
                     ige.client.vp1.camera.trackTranslate(ige.$(data), 20);
                     ige.client.playerId = entity.id();
 

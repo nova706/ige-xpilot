@@ -26,33 +26,33 @@ var Wall = IgeEntityBox2d.extend({
         case 'br':
             category = 'wall_br';
             collisionPoly = new IgePoly2d()
-                .addPoint(-this._geometry.x2, this._geometry.y2)
-                .addPoint(this._geometry.x2, this._geometry.y2)
-                .addPoint(this._geometry.x2, -this._geometry.y2);
+                .addPoint(-this._bounds2d.x2, this._bounds2d.y2)
+                .addPoint(this._bounds2d.x2, this._bounds2d.y2)
+                .addPoint(this._bounds2d.x2, -this._bounds2d.y2);
             texture = 'br';
             break;
         case 'bl':
             category = 'wall_bl';
             collisionPoly = new IgePoly2d()
-                .addPoint(this._geometry.x2, this._geometry.y2)
-                .addPoint(-this._geometry.x2, this._geometry.y2)
-                .addPoint(-this._geometry.x2, -this._geometry.y2);
+                .addPoint(this._bounds2d.x2, this._bounds2d.y2)
+                .addPoint(-this._bounds2d.x2, this._bounds2d.y2)
+                .addPoint(-this._bounds2d.x2, -this._bounds2d.y2);
             texture = 'bl';
             break;
         case 'tl':
             category = 'wall_tl';
             collisionPoly = new IgePoly2d()
-                .addPoint(this._geometry.x2, -this._geometry.y2)
-                .addPoint(-this._geometry.x2, -this._geometry.y2)
-                .addPoint(-this._geometry.x2, this._geometry.y2);
+                .addPoint(this._bounds2d.x2, -this._bounds2d.y2)
+                .addPoint(-this._bounds2d.x2, -this._bounds2d.y2)
+                .addPoint(-this._bounds2d.x2, this._bounds2d.y2);
             texture = 'tl';
             break;
         case 'tr':
             category = 'wall_tr';
             collisionPoly = new IgePoly2d()
-                .addPoint(-this._geometry.x2, -this._geometry.y2)
-                .addPoint(this._geometry.x2, -this._geometry.y2)
-                .addPoint(this._geometry.x2, this._geometry.y2);
+                .addPoint(-this._bounds2d.x2, -this._bounds2d.y2)
+                .addPoint(this._bounds2d.x2, -this._bounds2d.y2)
+                .addPoint(this._bounds2d.x2, this._bounds2d.y2);
             texture = 'tr';
             break;
         default:

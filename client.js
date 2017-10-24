@@ -107,18 +107,6 @@ var Client = IgeClass.extend({
         });
     },
 
-    playLocally: function () {
-        // TODO: This is currently a work in progress to move the physics to the client to allow "local play"
-        /*this.playingLocally = true;
-        this.initializeWorld();
-        var pad = this.getRandomPad();
-        var player = new Player({ hasShield: true, homeBaseId: pad.id() });
-        player.addBehaviour('PlayerControl', PlayerBehaviour);
-        ige.client.vp1.camera.trackTranslate(player, 20);
-        ige.client.playerId = player.id();
-        player.mount(this.objectScene);*/
-    },
-
     initializeWorld: function () {
         this.buildScene();
         this.buildMap(Map1);

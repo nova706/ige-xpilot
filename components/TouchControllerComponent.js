@@ -26,15 +26,15 @@ TouchControllerComponent = IgeEventingClass.extend({
         }
         this.movement = {
             id: -1,
-            pos: new IgePoint(0, 0, 0),
-            start_pos: new IgePoint(0, 0, 0),
-            vector: new IgePoint(0, 0, 0)
+            pos: new IgePoint2d(0, 0),
+            start_pos: new IgePoint2d(0, 0),
+            vector: new IgePoint2d(0, 0)
         };
         this.aiming = {
             id: -1,
-            pos: new IgePoint(0, 0, 0),
-            start_pos: new IgePoint(0, 0, 0),
-            vector: new IgePoint(0, 0, 0)
+            pos: new IgePoint2d(0, 0),
+            start_pos: new IgePoint2d(0, 0),
+            vector: new IgePoint2d(0, 0)
         };
         this.firing = false;
         ige.input.on('mouseDown', function (event) {
@@ -59,7 +59,7 @@ TouchControllerComponent = IgeEventingClass.extend({
             if (this._options.movement || !this._options.aiming) {
                 side = "movement";
             }
-            if (this._options.aiming && (!this._options.movement || touch.clientX > ige._geometry.x2)) {
+            if (this._options.aiming && (!this._options.movement || touch.clientX > ige._bounds2d.x2)) {
                 side = "aiming";
             }
             if (this[side].id < 0) {
@@ -67,8 +67,8 @@ TouchControllerComponent = IgeEventingClass.extend({
                     this.firing = true;
                 }
                 this[side].id = touch.identifier;
-                this[side].start_pos.x = touch.clientX - ige._geometry.x2;
-                this[side].start_pos.y = touch.clientY - ige._geometry.y2;
+                this[side].start_pos.x = touch.clientX - ige._bounds2d.x2;
+                this[side].start_pos.y = touch.clientY - ige._bounds2d.y2;
                 this[side].pos = this[side].start_pos.clone();
                 this[side].vector.x = 0;
                 this[side].vector.y = 0;
@@ -100,8 +100,8 @@ TouchControllerComponent = IgeEventingClass.extend({
                 side = "aiming";
             }
             if (side) {
-                this[side].pos.x = touch.clientX - ige._geometry.x2;
-                this[side].pos.y = touch.clientY - ige._geometry.y2;
+                this[side].pos.x = touch.clientX - ige._bounds2d.x2;
+                this[side].pos.y = touch.clientY - ige._bounds2d.y2;
                 this[side].vector = this[side].pos.clone();
                 this[side].vector.thisMinusPoint(this[side].start_pos);
                 this["_" + side + "_controller_stick"].translateToPoint(this[side].vector);

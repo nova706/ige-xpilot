@@ -26,9 +26,9 @@ var Turret = Box2DStreamEntity.extend({
             var triangles,
                 fixDefs,
                 collisionPoly = new IgePoly2d()
-                    .addPoint(0, -this._geometry.y2)
-                    .addPoint(this._geometry.x2, this._geometry.y2)
-                    .addPoint(-this._geometry.x2, this._geometry.y2);
+                    .addPoint(0, -this._bounds2d.y2)
+                    .addPoint(this._bounds2d.x2, this._bounds2d.y2)
+                    .addPoint(-this._bounds2d.x2, this._bounds2d.y2);
 
             // Scale the polygon by the box2d scale ratio
             collisionPoly.divide(ige.box2d._scaleRatio);
@@ -138,8 +138,8 @@ var Turret = Box2DStreamEntity.extend({
                     .quantityBase(100)
                     .quantityTimespan(150)
                     .deathOpacityBase(0)
-                    .velocityVector(new IgePoint(0, 0, 0), new IgePoint(-0.1, -0.1, 0), new IgePoint(0.1, 0.1, 0))
-                    .linearForceVector(new IgePoint(0, 0, 0))
+                    .velocityVector(new IgePoint2d(0, 0), new IgePoint2d(-0.1, -0.1), new IgePoint2d(0.1, 0.1))
+                    .linearForceVector(new IgePoint2d(0, 0))
                     .particleMountTarget(ige.client.objectScene)
                     .lifeSpan(150)
                     .mount(ige.client.objectScene)

@@ -3,10 +3,10 @@ var image = {
         ctx.fillStyle = '#000000';
         ctx.strokeStyle = '#4c7efc';
         ctx.beginPath();
-        ctx.moveTo(-entity._geometry.x2, entity._geometry.y2);
-        ctx.lineTo(entity._geometry.x2, entity._geometry.y2);
-        ctx.lineTo(entity._geometry.x2, -entity._geometry.y2);
-        ctx.lineTo(-entity._geometry.x2, entity._geometry.y2);
+        ctx.moveTo(-entity._bounds2d.x2, entity._bounds2d.y2);
+        ctx.lineTo(entity._bounds2d.x2, entity._bounds2d.y2);
+        ctx.lineTo(entity._bounds2d.x2, -entity._bounds2d.y2);
+        ctx.lineTo(-entity._bounds2d.x2, entity._bounds2d.y2);
         ctx.fill();
         ctx.stroke();
     }

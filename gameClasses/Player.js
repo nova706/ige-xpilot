@@ -32,10 +32,10 @@ var Player = Box2DStreamEntity.extend({
         var triangles,
             fixDefs,
             collisionPoly = new IgePoly2d()
-                .addPoint(0, -this._geometry.y2)
-                .addPoint(this._geometry.x2, this._geometry.y2)
-                .addPoint(0, this._geometry.y2 - 5)
-                .addPoint(-this._geometry.x2, this._geometry.y2);
+                .addPoint(0, -this._bounds2d.y2)
+                .addPoint(this._bounds2d.x2, this._bounds2d.y2)
+                .addPoint(0, this._bounds2d.y2 - 5)
+                .addPoint(-this._bounds2d.x2, this._bounds2d.y2);
 
         // Scale the polygon by the box2d scale ratio
         collisionPoly.divide(ige.box2d._scaleRatio);
@@ -127,7 +127,7 @@ var Player = Box2DStreamEntity.extend({
                 .quantityBase(60)
                 .quantityTimespan(1000)
                 .deathOpacityBase(0)
-                .velocityVector(new IgePoint(0, 0.05, 0), new IgePoint(-0.04, 0.05, 0), new IgePoint(0.04, 0.15, 0))
+                .velocityVector(new IgePoint2d(0, 0.05), new IgePoint2d(-0.04, 0.05), new IgePoint2d(0.04, 0.15))
                 .particleMountTarget(ige.client.objectScene)
                 .translateTo(0, 5, 0)
                 .mount(self);
@@ -201,7 +201,7 @@ var Player = Box2DStreamEntity.extend({
      */
     $land: function (landingPad) {
         this._box2dBody.SetAngularVelocity(0);
-        this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
+        this._box2dBody.SetLinearVelocity(new IgePoint2d(0, 0));
         this.rotateTo(0, 0, 0);
     },
 
@@ -211,7 +211,7 @@ var Player = Box2DStreamEntity.extend({
     goToBase: function () {
         if (this.homeBase) {
             this._box2dBody.SetAngularVelocity(0);
-            this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
+            this._box2dBody.SetLinearVelocity(new IgePoint2d(0, 0));
             this.rotateTo(0, 0, 0);
             this.translateTo(this.homeBase._translate.x, this.homeBase._translate.y - 5, 0);
         }
@@ -345,7 +345,7 @@ var Player = Box2DStreamEntity.extend({
         if (ige.isServer) {
             this._resetControls();
             this._box2dBody.SetAngularVelocity(0);
-            this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
+            this._box2dBody.SetLinearVelocity(new IgePoint2d(0, 0));
             this.rotateTo(0, 0, 0);
             this.unMount();
             this._box2dBody.SetAwake(false);
@@ -383,8 +383,8 @@ var Player = Box2DStreamEntity.extend({
                     .quantityBase(100)
                     .quantityTimespan(150)
                     .deathOpacityBase(0)
-                    .velocityVector(new IgePoint(0, 0, 0), new IgePoint(-0.1, -0.1, 0), new IgePoint(0.1, 0.1, 0))
-                    .linearForceVector(new IgePoint(0, 0, 0))
+                    .velocityVector(new IgePoint2d(0, 0), new IgePoint2d(-0.1, -0.1), new IgePoint2d(0.1, 0.1))
+                    .linearForceVector(new IgePoint2d(0, 0))
                     .particleMountTarget(ige.client.objectScene)
                     .lifeSpan(150)
                     .mount(ige.client.objectScene)
@@ -414,7 +414,7 @@ var Player = Box2DStreamEntity.extend({
             this._$updateFuel(100);
             this._box2dBody.SetActive(true);
             this._box2dBody.SetAngularVelocity(0);
-            this._box2dBody.SetLinearVelocity(new IgePoint(0, 0, 0));
+            this._box2dBody.SetLinearVelocity(new IgePoint2d(0, 0));
             this.goToBase();
             this.$toggleShield(true, 5000);
 
